@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.6
+#!/usr/bin/env /proj/sot/ska/bin/python
 
 #########################################################################################
 #                                                                                       #
@@ -6,7 +6,7 @@
 #                                                                                       #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                       #
 #                                                                                       #
-#       last updated: Jul1 10, 2012                                                     #
+#       last updated: Jun 04, 2013                                                      #
 #                                                                                       #
 #########################################################################################
 
@@ -21,7 +21,7 @@ import fnmatch
 #--- reading directory list
 #
 
-path = '/data/mta/Script/Python_script/house_keeping/dir_list'
+path = '/data/mta/Script/Python_script2.7/house_keeping/dir_list'
 f    = open(path, 'r')
 data = [line.strip() for line in f.readlines()]
 f.close()
@@ -90,29 +90,46 @@ def chkFile(inline, name = 'NA'):
 #
     if name == 'NA':
 
-        atemp = re.split('/', inline)
+        m = re.search('/', inline)
+        if m is not  None:
+	    if inline[-1] == '/':
+		inline = inline[:-1]
+
+            atemp = re.split('/', inline)
+        
 #
 #--- for the case the name starts with "./"
 #
-        if atemp[0] == '.':
-            dir  = './'
-            file = atemp[1]
+            if atemp[0] == '.':
+                dir  = './'
+		if len(atemp) > 1:
+		    for i in range(1, len(atemp) -1):
+		        dir = dir + '/' + atemp[i]
+                	file = atemp[len(atemp)-1]
+		else:
+                    file = atemp[1]
+		
 #
 #--- for the case only a file/directory name is given
 #
-        elif len(atemp) == 0:
-            dir  = './'
-            file = inline
+            elif len(atemp) == 0:
+                dir  = './'
+                file = inline
 #
 #--- for the case the full path and a file/directory name is given
 #
+            else:
+                dir = '/' +  atemp[1]
+                for i in range(2, len(atemp)-1):
+                    dir = dir + '/' + atemp[i]
+                dir = dir + '/'
+     
+                file  = atemp[len(atemp)-1]
+		if file == '':
+                	file  = atemp[len(atemp)-2]
         else:
-            dir = '/' +  atemp[1]
-            for i in range(2, len(atemp)-1):
-                dir = dir + '/' + atemp[i]
-            dir = dir + '/'
-    
-            file  = atemp[len(atemp)-1]
+            dir  = './'
+            file = inline
 #
 #--- for the case directory path and the file/directory name is separately given
 #
@@ -121,13 +138,22 @@ def chkFile(inline, name = 'NA'):
         file = name
 
 #
-#--- now fine whetner the file/directory exists in the directory
+#--- now find whetner the file/directory exists in the directory
 #
     chk = 0
-    for fout in os.listdir(dir):
-        if fnmatch.fnmatch(fout , file):
-            chk += 1
-            break
+    try:
+        m    = re.search('\/', file)
+        if m is not None:
+            temp = file.replace('/', '')
+            file = temp
+
+        for fout in os.listdir(dir):
+            if fout == file:
+                chk += 1
+                break
+
+    except:
+        pass
 
     if chk > 0:
         return 1
@@ -239,6 +265,8 @@ def useArc4gl(operation, dataset, detector, level, filetype, startYear = 0, star
     if operation == 'retrieve':
     	cmd = 'echo ' + hakama + ' |arc4gl -U' + dare + ' -Sarcocc -i arc_file'
         os.system(cmd)
+        cmd = 'rm ./arc_file'
+        os.system(cmd)
 #
 #--- move the extracted file, if depository is specified
 #
@@ -246,11 +274,14 @@ def useArc4gl(operation, dataset, detector, level, filetype, startYear = 0, star
     	    cmd = 'mv *.gz ' + deposit + '.'
     	    os.system(cmd)
 
+        xxx = os.listdir(deposit)
+
         cleanedData = []
         for fout in os.listdir(deposit):
             if fnmatch.fnmatch(fout , '*gz'):
 
-    	        cmd = 'gzip -d ' + deposit + '/*gz'
+#    	        cmd = 'gzip -d ' + deposit + '/*gz'
+    	        cmd = 'gzip -d ' + deposit +  fout
     	        os.system(cmd)
 #
 #--- run arc4gl one more time to read the file names
@@ -303,12 +334,12 @@ def useArc4gl(operation, dataset, detector, level, filetype, startYear = 0, star
 #--- for the command is to browse: return the list of fits file names
 #
     else:
-    	cmd = 'echo ' + hakama + ' |arc4gl -U' + dare + ' -Sarcocc -i arc_file > file_list'
-	os.system(cmd)
-	f = open('./file_list', 'r')
-	data = [line.strip() for line in f.readlines()]
-	f.close()
-	os.system('rm ./arc_file ./file_list')
+        cmd = 'echo ' + hakama + ' |arc4gl -U' + dare + ' -Sarcocc -i arc_file > file_list'
+        os.system(cmd)
+        f = open('./file_list', 'r')
+        data = [line.strip() for line in f.readlines()]
+        f.close()
+        os.system('rm ./arc_file ./file_list')
 #
 #--- extreact fits file names and drop everything else
 #
@@ -316,10 +347,10 @@ def useArc4gl(operation, dataset, detector, level, filetype, startYear = 0, star
         for ent in data:
             m = re.search('fits', ent)
             if m is not None:
-               atemp = re.split('\s+|\t+', ent)
-               cleanedData.append(atemp[0])
+                atemp = re.split('\s+|\t+', ent)
+                cleanedData.append(atemp[0])
 	
-	return cleanedData
+        return cleanedData
 
 
 
@@ -360,3 +391,77 @@ def useDataSeeker(startYear, startYdate, stopYear, stopYdate, extract, colList):
     os.system('rm ./ds_file  ./ztemp.fits ./zout_file')
 
     return data
+
+#---------------------------------------------------------------------------------------------------
+#-- isFileEmpty: check whether file exists and then check whether the file is empty or not       ---
+#---------------------------------------------------------------------------------------------------
+
+def isFileEmpty(file):
+
+    """
+     check whether file exists and then check whether the file is empty or not 
+     Input: file  ---- file name
+     Output: 0    ---- no file or the file is empty
+             1    ---- the file exists and it is not empty
+    """
+#
+#--- first check whether file exists
+#
+    chk  = chkFile(file)
+    if chk == 0:
+        return 0
+    else:
+#
+#--- then check whether the file is empty or not
+#
+        f    = open(file, 'r')
+        data = [line.strip() for line in f.readlines()]
+        f.close()
+        if len(data) > 0:
+            return 1
+        else:
+            return 0
+
+#---------------------------------------------------------------------------------------------------
+#--- removeDuplicate: remove duplicated lines from a file or list                               ----
+#---------------------------------------------------------------------------------------------------
+
+def removeDuplicate(file, chk = 1):
+
+    """
+     remove duplicated lines from a file or list
+     Input: file --- if chk == 0: file name
+                     if chk >  0: a list
+     Output:         if chk == 0: cleaned file
+                     if chk >  0: new -- a cleaned list
+    """
+
+    new = []
+    if chk == 1:
+        f    = open(file, 'r')
+        data = [line.strip() for line in f.readlines()]
+        f.close()
+    else:
+        data = file
+
+    if len(data) > 1:
+        data.sort()
+        first = data[0]
+        new = [first]
+        for i in range(1, len(data)):
+            ichk = 0
+            for comp in new:
+                if data[i] == comp:
+                    ichk = 1
+                    break
+            if ichk == 0:
+                new.append(data[i])
+
+        if chk == 1:
+            f = open(file, 'w')
+            for ent in new:
+                f.write(ent)
+                f.write('\n')
+            f.close()
+        else:
+            return new

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.6
+#!/usr/bin/env /proj/sot/ska/bin/python
 
 #################################################################################################
 #                                                                                               #
@@ -6,7 +6,7 @@
 #                                                                                               #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                               #
 #                                                                                               #
-#       last update: Jul 09, 2012                                                               #
+#       last update: May 13, 2013                                                               #
 #                                                                                               #
 #################################################################################################
 
@@ -41,6 +41,7 @@ tempout = tempdir + 'ztemp'
 #--- directory containin plotting related scripts
 #
 pbin_dir =  '/home/ascds/DS.release/otsbin/'
+pbin_dir = '/usr/bin/'
 
 #----------------------------------------------------------------------------------------------------------------
 #-- mta_convert_fits_to_image: convert a fits img file to a ps, gif, jpg, or png file                         ---
@@ -157,12 +158,12 @@ def mta_convert_fits_to_image(infile = 'NA', outfile = 'NA', scale = 'NA', size 
 
     elif type == 'gif':
         cmd = 'echo ""|gs -sDEVICE=ppmraw  -r' + size + '  -q -NOPAUSE -sOutputFile=-  ./foo.ps |' 
-        cmd = cmd + pbin_dir + 'pnmcrop |' + pbin_dir + 'ppmtogif > ' + outfile
+        cmd = cmd + 'ppmtogif > ' + outfile
         os.system(cmd)
 
     elif type == 'png':
         cmd = 'echo ""|gs -sDEVICE=ppmraw  -r' + size + '  -q -NOPAUSE -sOutputFile=-  ./foo.ps |' 
-        cmd = cmd + pbin_dir + 'pnmcrop |' + pbin_dir + 'pnmtopng > ' + outfile
+        cmd = cmd +  'pnmtopng > ' + outfile
         os.system(cmd)
 
     os.system('rm foo.*')

@@ -1,11 +1,11 @@
-#!/usr/local/bin/python2.6
+#!/usr/bin/env /proj/sot/ska/bin/python
 
 #################################################################################################
 #                                                                                               #
 #    this file contains functions related time format conversions.                              #
 #                                                                                               #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                               #
-#       last update Jul 11, 2012                                                                #
+#       last update Apr 17, 2013                                                                #
 #                                                                                               #   
 #################################################################################################
 
@@ -17,7 +17,7 @@ import sys
 #--- reading directory list
 #
 
-path = '/data/mta/Script/Python_script/house_keeping/dir_list'
+path = '/data/mta/Script/Python_script2.7/house_keeping/dir_list'
 f    = open(path, 'r')
 data = [line.strip() for line in f.readlines()]
 f.close()
