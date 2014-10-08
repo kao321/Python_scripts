@@ -5,7 +5,7 @@
 #    this file contains functions related time format conversions.                              #
 #                                                                                               #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                               #
-#       last update Apr 17, 2013                                                                #
+#       last update May 30, 2014                                                                #
 #                                                                                               #   
 #################################################################################################
 
@@ -157,17 +157,26 @@ def dateFormatCon(elm, *arg):
 
         elif n is not None:                 #--- for the case, e.g. 03/28/12T00:00:00
             atemp   = re.split('T', elm)
-            btemp   = re.split('\/', atemp[0])
-            year    = int(btemp[2])
+            m1      = re.search('\/', elm)
+            m2      = re.search('-', elm)
+            if m1 is not None:
+                btemp   = re.split('\/', atemp[0])
+                year    = int(btemp[2])
+    
+                if year > 90 and year < 1900:
+                    year += 1900
+                elif year < 90:
+                    year += 2000
+    
+                month   = int(btemp[0])
+                day     = int(btemp[1])
 
-            if year > 90 and year < 1900:
-                year += 1900
-            elif year < 90:
-                year += 2000
-
-            month   = int(btemp[0])
-            day     = int(btemp[1])
-
+            elif m2 is not None:
+                btemp = re.split('-', atemp[0])
+                year  = int(btemp[0])
+                month = int(btemp[1])
+                day   = int(btemp[2])
+    
             btemp   = re.split(':', atemp[1])
             hours   = int(btemp[0])
             minutes = int(btemp[1])
@@ -474,3 +483,174 @@ def currentTime(format = 'UTC'):
         otime = time.ctime()
     
     return otime
+
+
+#---------------------------------------------------------------------------------------------------
+#-- convert_time_format: convert time format from seconds to in the froma of "2009-03-15T07:13:30" -
+#---------------------------------------------------------------------------------------------------
+
+def convert_time_format(stime):
+
+    """
+    convert time format from seconds from 1998.1.1. to in the froma of "2009-03-15T07:13:30"
+    Input:  time in seconds from 1998.1.1
+    Output: time in format of "2009-03-15T07:13:30"
+    """
+
+    line= axTimeMTAL(stime)
+    year= int(line[0])
+    ydate   = int(line[1])
+    hours   = int(line[2])
+    minutes = int(line[3])
+    seconds = int(line[4])
+
+    (month, mdate) =  changeYdateToMonDate(year, ydate)
+
+    if hours < 10:
+        hours = '0' + str(hours)
+    else:
+        hours = str(hours)
+
+    if minutes < 10:
+        minutes = '0' + str(minutes)
+    else:
+        minutes = str(minutes)
+    
+    if seconds < 10:
+        seconds = '0' + str(seconds)
+    else:
+        hours = str(seconds)
+    
+    line  = str(year) + '-' + str(month) + '-' + str(mdate) + 'T' + hours + ':' + minutes + ':' + seconds
+    
+    return line
+
+#-----------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------
+
+#def stimeToDom(stime):
+#
+#    """
+#    convert time in the format of seconds from 1998.1.1 to DO<
+#    Input: stime --- seconds from 1998,1,1
+#    Output: dom
+#    """
+#
+#    string = convertCtimeToYdate(stime):
+#    atemp  = re.split(':', string)
+#    year   = int(atemp[0])
+#    ydate  = int(atemp[1])
+#    hours  = int(atemp[2])
+#    minutes= int(atemp[3])
+#    seconds= int(atemp[4])
+#
+#    dom    = findDOM(year, ydate, housrs, minutes, seconds)
+#
+#    return dom
+
+#---------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
+
+def isLeapYear(year):
+
+    """
+    chek the year is a leap year
+    Input:year   in full lenth (e.g. 2014, 813)
+    
+    Output:   0--- not leap year
+              1--- yes it is leap year
+    """
+
+    chk  = year % 4             #---- evry 4 yrs leap year
+    chk2 = year % 100           #---- except every 100 years (e.g. 2100, 2200)
+    chk3 = year % 400           #---- excpet every 400 years (e.g. 2000, 2400)
+
+    val  = 0
+    if chk == 0:
+        val = 1
+        if chk2 == 0:
+            val = 0
+    if chk3 == 0:
+        val = 1
+
+    return val
+
+
+#-----------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------
+
+def stimeToDom(stime):
+
+    """
+    convert time in the format of seconds from 1998.1.1 to DO<
+    Input: stime --- seconds from 1998,1,1
+    Output: dom
+    """
+
+#    string = convertCtimeToYdate(stime)
+    string = convertCtimeToYdate(stime)
+    atemp  = re.split(':', string)
+    year   = int(atemp[0])
+    ydate  = int(atemp[1])
+    hours  = int(atemp[2])
+    minutes= int(atemp[3])
+    seconds= int(atemp[4])
+
+    dom    = findDOM(year, ydate, hours, minutes, seconds)
+
+    return dom
+
+#----------------------------------------------------------------------------------------------------------------------------------------
+#-- YdateToDOM: Change from year/ydate to Chandra Days of Mission (DOM)                                                                --
+#----------------------------------------------------------------------------------------------------------------------------------------
+
+def YdateToDOM(year, ydate):
+
+    "for a given year, ydate, return Chandra Days of Mission (DOM) "
+
+    dom = ydate
+
+    if(year == 1999):
+        dom -= 202
+    elif(year >= 2000):
+        add = int ((year - 1997) / 4 )
+        dom = dom + 163 + (year - 2000) * 365 + add
+    else:
+        dom = 0
+
+    return dom
+
+
+#---------------------------------------------------------------------------------------------------
+#-- sectoFracYear: convert time in seconds from 1998.1.1 to fractional year                    -----
+#---------------------------------------------------------------------------------------------------
+
+def sectoFracYear(stime):
+
+    """
+    convert time in seconds from 1998.1.1 to fractional year
+    Input: stime    --- time in seconds from 1998.1.1
+    Output fractional year
+    """
+
+    ltime   = convertCtimeToYdate(stime)
+    atemp   = re.split(':', ltime)
+    year= int(atemp[0])
+    ydate   = int(atemp[1])
+    hours   = int(atemp[2])
+    minutes = int(atemp[3])
+    seconds = int(atemp[4])
+    
+    chk = 4.0 * int(0.25 * year)
+    if chk == year:
+        base = 366
+    else:
+        base = 365
+    
+    day = ydate + hours / 24.0 + minutes / 1440.0 + seconds / 86400.0
+    
+    return year + day / base
+    
