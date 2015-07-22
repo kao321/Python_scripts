@@ -5,13 +5,14 @@
 #    this file contains functions related time format conversions.                              #
 #                                                                                               #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                               #
-#       last update May 30, 2014                                                                #
+#       last update Jun 07, 2015                                                                #
 #                                                                                               #   
 #################################################################################################
 
 import time
 import re
 import sys
+import os
 
 #
 #--- reading directory list
@@ -447,7 +448,7 @@ def axTimeMTA(input):
         ydate = int (time[1])
         hour  = int (time[2])
         minute= int (time[3])
-        second= int (time[4])
+        second= int (float(time[4]))
 
         ntime = convertDateToCTime(year, ydate, hour, minute, second)
 

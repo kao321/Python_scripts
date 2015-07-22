@@ -6,7 +6,7 @@
 #                                                                                       #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                       #
 #                                                                                       #
-#       last updated: Mar 27, 2014                                                      #
+#       last updated: Jul 07, 2015                                                      #
 #                                                                                       #
 #########################################################################################
 
@@ -401,44 +401,46 @@ def removeDuplicate(file, chk = 1, dosort=1):
      Output:         if chk == 0: cleaned file
                      if chk >  0: new -- a cleaned list
     """
-
-    new = []
-    if chk == 1:
-        f    = open(file, 'r')
-        data = [line.strip() for line in f.readlines()]
-        f.close()
+    if chk == 1 and chkFile(file) == 0:
+        return [] 
     else:
-        data = file
-
-    if len(data) > 1:
-
-        if dosort > 0:
-            data.sort()
-
-        first = data[0]
-        new = [first]
-        for i in range(1, len(data)):
-            ichk = 0
-            for comp in new:
-                if data[i] == comp:
-                    ichk = 1
-                    break
-            if ichk == 0:
-                new.append(data[i])
-
+        new = []
         if chk == 1:
-            f = open(file, 'w')
-            for ent in new:
-                f.write(ent)
-                f.write('\n')
+            f    = open(file, 'r')
+            data = [line.strip() for line in f.readlines()]
             f.close()
         else:
-            return new
-    else:
-        if chk == 1:
-            pass
+            data = file
+    
+        if len(data) > 1:
+    
+            if dosort > 0:
+                data.sort()
+    
+            first = data[0]
+            new = [first]
+            for i in range(1, len(data)):
+                ichk = 0
+                for comp in new:
+                    if data[i] == comp:
+                        ichk = 1
+                        break
+                if ichk == 0:
+                    new.append(data[i])
+    
+            if chk == 1:
+                f = open(file, 'w')
+                for ent in new:
+                    f.write(ent)
+                    f.write('\n')
+                f.close()
+            else:
+                return new
         else:
-            return data
+            if chk == 1:
+                pass
+            else:
+                return data
 
 #---------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------
@@ -780,3 +782,30 @@ def file_wild_serach(dir, name):
             return 0
     else:
         return 0
+
+#---------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
+
+def check_file_with_name(dir, part):
+
+    if os.listdir(dir) == []:
+        return False
+
+    else:
+        cmd = 'ls ' + dir + '> ' +  tempout
+        os.system(cmd)
+
+        f    = open(tempout, 'r')
+        line = f.read()
+        
+        cmd = 'rm ' + tempout
+        os.system(cmd)
+
+        mc   = re.search(part, line)
+        if mc is not None:
+            return True
+        else:
+            return False
+
+
