@@ -5,7 +5,7 @@
 #    this file contains functions related time format conversions.                              #
 #                                                                                               #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                               #
-#       last update Jun 07, 2015                                                                #
+#       last update Aug 25, 2015                                                                #
 #                                                                                               #   
 #################################################################################################
 
@@ -294,6 +294,35 @@ def changeMonthFormat(month = 'NA'):
     return cmonth
 
 
+
+#----------------------------------------------------------------------------------------
+#-- changeFullMonthFormat: change manth format from digit to letter or letter to digit --
+#----------------------------------------------------------------------------------------
+
+def changeFullMonthFormat(month = 'NA'):
+
+    "for a given month in either digit or letters (e.g. 'January'), return the month in letters or digit"
+
+    m_list = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', \
+                       'September', 'October', 'November', 'December']
+
+
+    if str.isdigit(str(month)):
+        position = month - 1
+        if(position < 0 or position > 11):
+            cmonth = 'NA'
+        else:
+            cmonth = m_list[position]
+    else:
+        cmonth = 'NA'
+        for dmonth in range(0, 12):
+            if str.lower(str(m_list[dmonth])) == str.lower(str(month)):
+                cmonth = dmonth + 1
+                break
+
+    return cmonth
+
+
 #----------------------------------------------------------------------------------------
 #--- findYearDate: for a given year, month, and date, return year date                ---
 #----------------------------------------------------------------------------------------
@@ -498,7 +527,7 @@ def convert_time_format(stime):
     Output: time in format of "2009-03-15T07:13:30"
     """
 
-    line= axTimeMTAL(stime)
+    line= axTimeMTA(stime)
     year= int(line[0])
     ydate   = int(line[1])
     hours   = int(line[2])
@@ -564,6 +593,7 @@ def isLeapYear(year):
               1--- yes it is leap year
     """
 
+    year = int(float(year))
     chk  = year % 4             #---- evry 4 yrs leap year
     chk2 = year % 100           #---- except every 100 years (e.g. 2100, 2200)
     chk3 = year % 400           #---- excpet every 400 years (e.g. 2000, 2400)
@@ -604,9 +634,9 @@ def stimeToDom(stime):
 
     return dom
 
-#----------------------------------------------------------------------------------------------------------------------------------------
-#-- YdateToDOM: Change from year/ydate to Chandra Days of Mission (DOM)                                                                --
-#----------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------
+#-- YdateToDOM: Change from year/ydate to Chandra Days of Mission (DOM)                                            --
+#--------------------------------------------------------------------------------------------------------------------
 
 def YdateToDOM(year, ydate):
 
@@ -655,3 +685,37 @@ def sectoFracYear(stime):
     
     return year + day / base
     
+#----------------------------------------------------------------------------------
+#-- find_file_modified_time: find the file modification time                     --
+#----------------------------------------------------------------------------------
+
+def find_file_modified_time(file):
+    """
+    find the file modification time
+    input:  file        --- a file/directory full path
+    output: stime       --- a modificaiton time in seconds from 1998.1.1
+    """
+#
+#--- find stat of the file. one of them is the file creation date
+#
+    (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(file)
+    out   = time.ctime(mtime)
+#
+#--- out is in "Mon Dec 01 15:22:37 2014" format
+#
+    atemp = re.split('\s+', out)
+    
+    month   = changeMonthFormat(atemp[1])
+    date    = int(float(atemp[2]))
+    year    = int(float(atemp[4]))
+
+    btemp   = re.split(':', atemp[3])
+
+    hours   = int(float(btemp[0]))
+    minutes = int(float(btemp[1]))
+    seconds = int(float(btemp[2]))
+
+    stime = convertDateToTime2(year, month, date, hours, minutes, seconds)
+    
+    return stime
+

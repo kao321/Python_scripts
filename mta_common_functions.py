@@ -6,7 +6,7 @@
 #                                                                                       #
 #       author: t. isobe (tisobe@cfa.harvard.edu)                                       #
 #                                                                                       #
-#       last updated: Jul 07, 2015                                                      #
+#       last updated: Jul 24, 2015                                                      #
 #                                                                                       #
 #########################################################################################
 
@@ -789,23 +789,26 @@ def file_wild_serach(dir, name):
 
 def check_file_with_name(dir, part):
 
-    if os.listdir(dir) == []:
-        return False
-
-    else:
-        cmd = 'ls ' + dir + '> ' +  tempout
-        os.system(cmd)
-
-        f    = open(tempout, 'r')
-        line = f.read()
-        
-        cmd = 'rm ' + tempout
-        os.system(cmd)
-
-        mc   = re.search(part, line)
-        if mc is not None:
-            return True
-        else:
+    try:
+        if os.listdir(dir) == []:
             return False
+    
+        else:
+            cmd = 'ls ' + dir + '> ' +  tempout
+            os.system(cmd)
+    
+            f    = open(tempout, 'r')
+            line = f.read()
+         
+            cmd = 'rm ' + tempout
+            os.system(cmd)
+    
+            mc   = re.search(part, line)
+            if mc is not None:
+                return True
+            else:
+                return False
+    except:
+        return False
 
 
